@@ -114,7 +114,7 @@ function chestSVG(){
 }
 
 /* ================= État ================= */
-const DEF = {opened:0, coins:0, counts:{}, first:{}, best:null, hist:[], boost:null, theme:'dark', sound:true, vib:true, anim:'chest', speed:1, mode:'off', sandbox:false, autoT:'token', estT:'token', qty:1};
+const DEF = {opened:0, coins:0, counts:{}, first:{}, best:null, hist:[], boost:null, theme:'dark', sound:true, vib:true, anim:'chest', speed:1, mode:'off', sandbox:false, autoT:'token', estT:'token', estN:1, qty:1};
 let S = Object.assign(structuredClone(DEF), JSON.parse(localStorage.getItem('tokenhunter') || '{}'));
 const save = () => localStorage.setItem('tokenhunter', JSON.stringify(S));
 let busy = false, autoOn = false;
@@ -336,14 +336,51 @@ function toggleAuto(){
   })(performance.now());
 }
 function paintAuto(){ const b = $('#bAuto'); b.classList.toggle('on', autoOn); b.innerHTML = autoOn ? `${I('stop')}STOP` : `${I('play')}AUTO`; }
-function lock(on, keepAuto){ [$('#bOpen'), $('#bEst'), ...$$('#qty button')].forEach(b => b.disabled = on); if (!keepAuto) $('#bAuto').disabled = on; }
+function lock(on, keepAuto){ [$('#bOpen'), $('#bEst'), ...$$('#qty button'), ...$$('#estN button')].forEach(b => b.disabled = on); if (!keepAuto) $('#bAuto').disabled = on; }
 
 /* ================= Simulateur ================= */
 function geo(p){ if (p >= 1) return 1; if (p <= 0) return Infinity; return Math.max(1, Math.ceil(Math.log(1 - Math.random()) / Math.log1p(-p))); }
+const pctF = v => v >= 99.995 ? '≈ 100 %' : v < .01 ? '< 0,01 %' : v.toLocaleString('fr-FR', {maximumFractionDigits:2}) + ' %';
+/* Plusieurs essais d'affilée : moyenne, médiane, meilleur, pire */
+async function estimateMany(n, items, P, sample){
+  const runs = Array.from({length:n}, () => sample().N), mx = Math.max(...runs);
+  const expect = items.length === 1 ? 1 / P[items[0].id] : null;
+  const box = $('#simStage'), top = items.reduce((a, b) => b.t > a.t ? b : a);
+  box.innerHTML = `<div class="est"><div class="sub-n">Moyenne en cours</div><div class="big-n" id="eN">0</div><div class="sub-n">coffres · <b id="eC">0</b> / ${fmt(n)} essais</div>
+    <div class="runs ${n > 200 ? 'dense' : ''}" id="eR"></div>
+    <div class="runs-ax"><span>Chaque barre = un essai</span>${expect ? `<span><i class="lg-me"></i>plus rapide que la théorie (${fmt(expect)})</span>` : ''}</div></div>`;
+  $('#estOut').innerHTML = '';
+  const R = $('#eR'), D = dur(n >= 1000 ? 5000 : 4000), t0 = performance.now(); let shown = 0, sum = 0, lastTick = 0;
+  await new Promise(res => { (function step(now){
+    const t = Math.min(1, (now - t0) / D), target = Math.ceil(n * (t * t * (3 - 2 * t)));
+    let html = '';
+    while (shown < target){ const v = runs[shown++]; sum += v;
+      html += `<div class="${expect && v <= expect ? 'good' : ''}" style="height:${Math.max(2, Math.sqrt(v / mx) * 100)}%"></div>`; }
+    if (html){ R.insertAdjacentHTML('beforeend', html); $('#eN').textContent = fmt(sum / shown); $('#eC').textContent = fmt(shown); }
+    if (now - lastTick > 70 && html){ sfx.tick(); lastTick = now; }
+    if (t < 1) requestAnimationFrame(step); else res(); })(t0); });
+  const xs = [...runs].sort((a, b) => a - b), q = f => xs[Math.min(n - 1, Math.floor(f * n))], avg = sum / n;
+  $('#eN').textContent = fmt(avg);
+  sfx.reveal(Math.min(top.t, 6)); vib([80, 40, 200]); confetti(RAR[top.r].c, 120);
+  toast(`Moyenne sur ${fmt(n)} essais`, `${fmt(avg)} coffres · ${items.length > 1 ? 'Collection complète' : top.name}`, top);
+  const fast = expect ? runs.filter(v => v <= expect).length / n * 100 : null;
+  $('#estOut').innerHTML = `<div class="est-res">
+      <div class="st hl"><small>Moyenne</small><b>${fmt(avg)}</b></div>
+      <div class="st"><small>Médiane</small><b>${fmt(q(.5))}</b></div>
+      <div class="st"><small>Plus rapide</small><b>${fmt(xs[0])}</b></div>
+      <div class="st"><small>Plus long</small><b>${fmt(xs[n - 1])}</b></div></div>
+    <div class="est-res">
+      <div class="st"><small>Théorie (moyenne attendue)</small><b>${expect ? fmt(expect) : '—'}</b></div>
+      <div class="st"><small>Écart avec la théorie</small><b>${expect ? (avg >= expect ? '+' : '') + ((avg / expect - 1) * 100).toLocaleString('fr-FR', {maximumFractionDigits:1}) + ' %' : '—'}</b></div>
+      <div class="st"><small>Essais sous la moyenne théorique</small><b>${fast == null ? '—' : pctF(fast)}</b></div>
+      <div class="st"><small>≈ Parties en moyenne (25 coffres)</small><b>${fmt(avg / 25)}</b></div></div>`;
+  if (!expect) $$('#estOut .est-res')[1].remove();
+}
 async function estimate(){
   if (busy || autoOn) return; busy = true; lock(true);
   const P = Object.fromEntries(probs().map(([i, p]) => [i.id, p])), tgt = S.estT, items = tgt === 'all' ? ITEMS : [byId[tgt]];
   const sample = () => { const ts = items.map(i => geo(P[i.id])); return {ts, N:Math.max(...ts)}; };
+  if (S.estN > 1){ await estimateMany(S.estN, items, P, sample); busy = false; lock(false); return; }
   const run = sample(), N = run.N, logN = Math.log(Math.max(N, 2));
   const box = $('#simStage');
   box.innerHTML = `<div class="est"><div class="big-n" id="eN">0</div><div class="sub-n">coffres ouverts</div>
@@ -437,6 +474,8 @@ function applyPrefs(){
   $('#spdVal').textContent = (S.speed <= .5 ? 'Lent' : S.speed <= 1.25 ? 'Normal' : S.speed <= 2.5 ? 'Rapide' : 'Turbo') + ' · x' + String(S.speed).replace('.', ',');
   $('#autoT').value = S.autoT;
   $$('#estT .tg').forEach(b => b.classList.toggle('on', b.dataset.v === S.estT));
+  $$('#estN button').forEach(b => b.classList.toggle('on', +b.dataset.n === S.estN));
+  $('#bEst').textContent = S.estN > 1 ? `Lancer ${fmt(S.estN)} simulations` : 'Lancer la simulation';
 }
 
 /* ================= Init ================= */
@@ -453,6 +492,7 @@ $('#bOpen').onclick = () => S.qty === 1 ? openOne() : openMany(S.qty);
 $('#qty').onclick = e => { const q = e.target.closest('button')?.dataset.q; if (q){ S.qty = +q; sfx.click(); refresh(); } };
 $('#bAuto').onclick = toggleAuto;
 $('#bEst').onclick = estimate;
+$('#estN').onclick = e => { const n = e.target.closest('button')?.dataset.n; if (n && !busy){ S.estN = +n; sfx.click(); applyPrefs(); save(); } };
 $('#estT').onclick = e => { const v = e.target.closest('.tg')?.dataset.v; if (v){ S.estT = v; sfx.click(); applyPrefs(); save(); } };
 $('#segAnim').onclick = e => { const v = e.target.closest('button')?.dataset.v; if (v && !busy){ S.anim = v; sfx.click(); refresh(); if (!autoOn) idle(); } };
 $('#segMode').onclick = e => { const v = e.target.closest('button')?.dataset.v; if (v){ S.mode = v; sfx.click(); refresh(); } };

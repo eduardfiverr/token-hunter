@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0a0b1e">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=4">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -95,11 +95,13 @@
   </section>
 
   <section class="sec" id="sim">
-    <div class="sec-h"><span id="hSim"></span><div><h2>Simulateur</h2><p>Combien de coffres faut-il pour avoir l'objectif ? (taux et boost actuels)</p></div></div>
+    <div class="sec-h"><span id="hSim"></span><div><h2>Simulateur</h2><p>Combien de coffres pour avoir l'objectif ? Lance 1 essai ou 1 000 pour avoir la moyenne (taux et boost actuels)</p></div></div>
     <div class="sim">
       <div>
         <div class="lbl">Objectif</div>
         <div class="targets" id="estT"></div>
+        <div class="lbl">Nombre d'essais</div>
+        <div class="qty nseg" id="estN"><button data-n="1">1</button><button data-n="10">10</button><button data-n="100">100</button><button data-n="1000">1 000</button></div>
         <button class="cta" id="bEst">Lancer la simulation</button>
       </div>
       <div>
@@ -120,6 +122,6 @@
 
 <footer>Token Hunter · projet perso non affilié à Epic Games · simulation uniquement, aucun vrai objet</footer>
 <div id="toasts"></div>
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
