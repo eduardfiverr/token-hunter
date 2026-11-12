@@ -159,6 +159,9 @@ kbd{font-family:var(--f);font-weight:800;border:1px solid var(--card-b);border-b
 .face{position:absolute;inset:0;border-radius:18px}
 .face.back{display:grid;place-items:center;background:linear-gradient(145deg,#4a37b8,#1a1450);border:2px solid rgba(255,255,255,.18);color:var(--accent);animation:halfOut .2s calc(var(--d) + .4s) ease-in forwards}
 .face.back svg{width:46%;height:46%}
+.flip.done .flip-in{animation:none;opacity:1;transform:none}
+.flip.done .face.back{animation:none;opacity:0;visibility:hidden}
+.flip.done .face.front{animation:none;transform:none}
 .face.front{transform:scaleX(0);animation:halfIn .32s calc(var(--d) + .6s) cubic-bezier(.3,1.6,.5,1) forwards}
 .face.front .tile{width:100%;height:100%}
 .flip.hot .face.front .tile{box-shadow:0 0 0 3px #fff,0 0 40px var(--rc)}

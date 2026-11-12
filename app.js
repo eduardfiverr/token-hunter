@@ -303,6 +303,7 @@ async function openMany(n){
     <div class="multi-sum" style="animation-delay:${show.length * step + 700}ms">${n} coffres · meilleur : ${best.name} · +${fmt(S.coins - c0)} éclats</div></div>`;
   show.forEach((it, i) => setTimeout(() => sfx.flip(it.t), i * step + 620));
   await sleep(show.length * step + 900);
+  $$('#view .flip').forEach(f => f.classList.add('done')); // sécurité : toujours finir face visible
   if (best.t > 0) setTint(RAR[best.r].c);
   sfx.reveal(best.t);
   if (best.t >= 2) confetti(RAR[best.r].c, best.t >= 6 ? 300 : best.t >= 4 ? 140 : 50);
