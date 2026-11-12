@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Token Hunter — Simulateur de coffres</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗝️</text></svg>">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <radialGradient id="gGem" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff7c9"/><stop offset=".4" stop-color="#ffc61f"/><stop offset="1" stop-color="#e06d00"/></radialGradient>
+  <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#f3b21b"/><stop offset="1" stop-color="#9c5c08"/></linearGradient>
+</defs></svg>
+
+<header class="top">
+  <div class="brand"><span class="logo" id="logo"></span><div><b>TOKEN HUNTER</b><small>Simulateur de coffres · taux officiels</small></div></div>
+  <div class="chips">
+    <span class="chip" id="coins">💰 0</span>
+    <span class="chip" id="opened">📦 0</span>
+    <button class="ic" id="bSound" title="Son">🔊</button>
+    <button class="ic" id="bVib" title="Vibrations">📳</button>
+    <button class="ic" id="bTheme" title="Thème">🌙</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="stage-wrap">
+    <div id="stage">
+      <div class="rays"></div>
+      <canvas id="fx"></canvas>
+      <div class="badges"><span id="modeBadge" class="badge"></span><span id="boostBadge" class="badge boost hidden"></span></div>
+      <div id="bubble" class="bubble">Prêt à chasser le jeton ?</div>
+      <div id="view"></div>
+    </div>
+    <div class="actions">
+      <button class="btn main" id="bOpen">OUVRIR</button>
+      <button class="btn" id="b10">x10</button>
+      <button class="btn" id="b100">x100</button>
+      <button class="btn auto" id="bAuto">AUTO ▶</button>
+    </div>
+    <div class="opts">
+      <div class="opt"><label>Animation</label>
+        <div class="seg" id="segAnim"><button data-v="roulette">🎰 Roulette</button><button data-v="chest">🧰 Coffre</button><button data-v="instant">⚡ Instant</button></div>
+      </div>
+      <div class="opt"><label>Vitesse <b id="spdVal">x1</b></label><input type="range" id="spd" min="0.25" max="5" step="0.25"></div>
+      <div class="opt"><label>Auto jusqu'à</label>
+        <select id="autoT"><option value="token">Jeton</option><option value="gold">Skin doré</option><option value="leg">Légendaire ou mieux</option><option value="any">N'importe quel objet</option><option value="never">Infini</option></select>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <nav class="tabs"><button data-t="rates" class="on">Taux</button><button data-t="boosts">Boosts</button><button data-t="inv">Inventaire</button><button data-t="stats">Stats</button><button data-t="est">Estimation</button></nav>
+    <div class="tab on" id="t-rates">
+      <div class="seg wrap" id="segMode"></div>
+      <table class="rates" id="ratesTbl"></table>
+      <p class="note">Taux officiels publiés par Epic (Fortnite Status, 7 nov. 2026), saison Treasure Hunters. Taux fixe par coffre, aucun système de pitié. La « rumeur x1000 » n'est pas confirmée.</p>
+    </div>
+    <div class="tab" id="t-boosts">
+      <p class="note">Chaque coffre rapporte des 💰. Les boosts multiplient les chances du <b>Jeton</b> et du <b>Skin doré</b> pendant un nombre limité de coffres.</p>
+      <label class="sw"><input type="checkbox" id="sandbox"> Mode libre (boosts gratuits et illimités)</label>
+      <div id="boostList" class="boosts"></div>
+    </div>
+    <div class="tab" id="t-inv"><div id="invGrid" class="inv"></div></div>
+    <div class="tab" id="t-stats">
+      <div id="statsBox" class="tiles"></div>
+      <h4>Derniers drops</h4><ul id="hist" class="hist"></ul>
+      <button class="btn small danger" id="bReset">Réinitialiser</button>
+    </div>
+    <div class="tab" id="t-est">
+      <p class="note">Simule en combien de coffres tu obtiens l'objectif, avec les taux et le boost actuels (boost supposé permanent).</p>
+      <div class="opt"><label>Objectif</label><select id="estT"></select></div>
+      <button class="btn main wide" id="bEst">Lancer l'estimation</button>
+      <div id="estOut"></div>
+    </div>
+  </aside>
+</main>
+<footer>Projet perso, non affilié à Epic Games · simulation uniquement · <kbd>Espace</kbd> = ouvrir</footer>
+<script src="app.js"></script>
+</body>
+</html>
